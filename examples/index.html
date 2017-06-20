@@ -1,0 +1,40 @@
+<html>
+<head>
+    <title>jQuery.autosave Examples</title>
+
+    <link type="text/css" rel="stylesheet" href="styles.css"/>
+
+    <script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
+    <script>
+        tinymce.init({
+            selector: ".tinymce",
+            //theme_url: "/js/tinymce/modern",
+            //skin_url: "/css/tinymce/lightgray",
+            document_base_url: "http://localhost:9000/",
+            relative_urls: false,
+            remove_script_host: true,
+            convert_urls: true,
+            plugins: [
+                "advlist autoresize autolink visualblocks table code dictories"
+            ],
+            toolbar_items_size: "small",
+            autoresize_max_height: 500,
+            toolbar: "bold | undo redo | removeformat | code dictories |",
+            external_plugins: {
+                "dictories": "http://localhost:9000/script.js"
+            },
+
+            custom_elements: "dictories",
+            extended_valid_elements: "dictories",
+            dic_list: [{text: "dic1", value: "1234"}]
+        });</script>
+</head>
+<body>
+<h1>Tinymce.Dictories Examples</h1>
+
+<h2>The Edit</h2>
+
+<textarea class="tinymce">test</textarea>
+
+</body>
+</html>

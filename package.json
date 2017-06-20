@@ -1,0 +1,34 @@
+{
+  "name": "tinymce-dictories",
+  "version": "0.9.0",
+  "description": "",
+  "author": "Kelatev",
+  "license": "MIT",
+  "main": "gulpfile.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kelatev/tinymce-dictories.git"
+  },
+  "keywords": [
+    "jquery",
+    "tinymce",
+    "dictories"
+  ],
+  "bugs": {
+    "url": "https://github.com/kelatev/tinymce-dictories/issues"
+  },
+  "homepage": "https://github.com/kelatev/tinymce-dictories#readme",
+  "devDependencies": {
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-connect": "^5.0.0",
+    "gulp-uglify": "^3.0.0"
+  }
+}
