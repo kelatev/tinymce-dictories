@@ -24,8 +24,11 @@
                 "dictories": "http://localhost:9000/script.js"
             },
 
-            custom_elements: "dictories",
-            extended_valid_elements: "dictories",
+            custom_elements: "~dictories[*]",
+            extended_valid_elements: "dictories[*]",
+            short_ended_elements: 'area base basefont br col frame hr img input isindex link ' +
+            'meta param embed source wbr track dictories',
+
             dic_list: [{text: "dic1", value: "1234"}]
         });</script>
 </head>
