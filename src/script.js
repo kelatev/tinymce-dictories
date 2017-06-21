@@ -1,199 +1,189 @@
-/*global tinymce:true */
+(function () {
 
-tinymce.PluginManager.add('dictories', function (editor) {
-    var attachState = {};
+    tinymce.PluginManager.requireLangPack('dictories');
 
-    function isDictories(elm) {
-        return elm && elm.nodeName === 'dictories' && elm.href;
-    }
+    tinymce.create('tinymce.plugins.Dictories', {
+        init: function (editor, url) {
+            //}
+            //tinymce.PluginManager.add('dictories', function (editor) {
+            var attachState = {};
 
-    function hasDictories(elements) {
-        return tinymce.util.Tools.grep(elements, isDictories).length > 0;
-    }
-
-    function createDicList(callback) {
-        return function () {
-            var dicList = editor.settings.dic_list;
-
-            if (typeof dicList == "string") {
-                tinymce.util.XHR.send({
-                    url: dicList,
-                    success: function (text) {
-                        callback(tinymce.util.JSON.parse(text));
-                    }
-                });
-            } else if (typeof dicList == "function") {
-                dicList(callback);
-            } else {
-                callback(dicList);
+            function isDictories(elm) {
+                return elm && elm.nodeName === 'dictories' && elm.href;
             }
-        };
-    }
 
-    function buildDicItems(inputList, itemCallback, startItems) {
-        function appendItems(values, output) {
-            output = output || [];
+            function hasDictories(elements) {
+                return tinymce.util.Tools.grep(elements, isDictories).length > 0;
+            }
 
-            tinymce.each(values, function (item) {
-                var menuItem = {text: item.text || item.title};
+            function createDicList(callback) {
+                return function () {
+                    var dicList = editor.settings.dic_list;
 
-                if (item.menu) {
-                    menuItem.menu = appendItems(item.menu);
-                } else {
-                    menuItem.value = item.value;
-
-                    if (itemCallback) {
-                        itemCallback(menuItem);
+                    if (typeof dicList === "string") {
+                        tinymce.util.XHR.send({
+                            url: dicList,
+                            success: function (text) {
+                                callback(tinymce.util.JSON.parse(text));
+                            }
+                        });
+                    } else if (typeof dicList === "function") {
+                        dicList(callback);
+                    } else {
+                        callback(dicList);
                     }
+                };
+            }
+
+            function buildDicItems(inputList, itemCallback, startItems) {
+                function appendItems(values, output) {
+                    output = output || [];
+
+                    tinymce.each(values, function (item) {
+                        var menuItem = {text: item.text || item.title};
+
+                        if (item.menu) {
+                            menuItem.menu = appendItems(item.menu);
+                        } else {
+                            menuItem.value = item.value;
+
+                            if (itemCallback) {
+                                itemCallback(menuItem);
+                            }
+                        }
+
+                        output.push(menuItem);
+                    });
+
+                    return output;
                 }
 
-                output.push(menuItem);
-            });
+                return appendItems(inputList, startItems || []);
+            }
 
-            return output;
-        }
+            function showDialog(dicList) {
+                var data = {},
+                    selection = editor.selection,
+                    dom = editor.dom,
+                    dicElm;
+                var dicListCtrl, countListCtrl;
 
-        return appendItems(inputList, startItems || []);
-    }
+                var countList = [{text: '10', value: 10}, {text: '30', value: 30}, {text: 'All', value: 0}],
+                    countDefault = 0;
 
-    function showDialog(dicList) {
-        var data = {},
-            selection = editor.selection,
-            dom = editor.dom,
-            selectedElm, anchorElm;
-        var win, textListCtrl, dicListCtrl, countListCtrl, value;
-
-        function dicListChangeHandler(e) {
-            data.value = e.control.value();
-        }
-
-        selectedElm = selection.getNode();
-        anchorElm = dom.getParent(selectedElm, 'dictories[type]');
-
-        data.value = anchorElm ? dom.getAttrib(anchorElm, 'type') : '';
-        data.count = anchorElm ? Number(dom.getAttrib(anchorElm, 'count')) : 0;
-
-        if (dicList) {
-            dicListCtrl = {
-                name: 'type',
-                type: 'listbox',
-                label: 'Link list',
-                values: buildDicItems(dicList),
-                onselect: dicListChangeHandler,
-                value: data.value,
-                onPostRender: function () {
-                    /*eslint consistent-this:0*/
-                    dicListCtrl = this;
+                dicElm = selection.getNode();
+                if (dicElm && (dicElm.nodeName !== 'DICTORIES')) {
+                    dicElm = null;
                 }
-            };
-            countListCtrl = {
-                name: 'count',
-                type: 'listbox',
-                label: 'Items',
-                values: buildDicItems([{text: '10', value: 10}, {text: '30', value: 30}, {text: 'All', value: 0}]),
-                value: data.count,
-                onPostRender: function () {
-                    /*eslint consistent-this:0*/
-                    dicListCtrl = this;
-                }
-            };
 
-            win = editor.windowManager.open({
-                title: 'Insert dictories',
-                data: data,
-                body: [
-                    dicListCtrl,
-                    countListCtrl
-                ],
-                onSubmit: function (e) {
-                    data = tinymce.extend(data, e.data);
+                data.value = dicElm ? dom.getAttrib(dicElm, 'type') : '';
+                data.count = dicElm ? Number(dom.getAttrib(dicElm, 'count')) : countDefault;
 
-                    function createLink() {
-                        var linkAttrs = {
-                            value: data.value ? data.value : null,
-                            count: data.count != 0 ? data.count : null
-                        };
+                if (dicList) {
+                    dicListCtrl = {
+                        name: 'type',
+                        type: 'listbox',
+                        label: tinymce.i18n.translate('Link list'),
+                        values: buildDicItems(dicList),
+                        onSelect: function (e) {
+                            data.type = e.control.value();
+                        },
+                        value: data.value
+                    };
+                    countListCtrl = {
+                        name: 'count',
+                        type: 'listbox',
+                        label: tinymce.i18n.translate('Items'),
+                        values: buildDicItems(countList),
+                        value: data.count
+                    };
 
-                        /*if (href === attachState.href) {
-                         attachState.attach();
-                         attachState = {};
-                         }*/
+                    editor.windowManager.open({
+                        title: tinymce.i18n.translate('Insert dictories'),
+                        data: data,
+                        body: [
+                            dicListCtrl,
+                            countListCtrl
+                        ],
+                        onSubmit: function (e) {
+                            data = tinymce.extend(data, e.data);
 
-                        if (anchorElm) {
-                            editor.focus();
+                            function createLink() {
+                                var linkAttr = {
+                                    type: data.type ? data.type : data.value,
+                                    count: data.count ? data.count : countDefault
+                                };
 
-                            if (onlyText && data.text != initialText) {
-                                if ("innerText" in anchorElm) {
-                                    anchorElm.innerText = data.text;
+                                editor.focus();
+
+                                if (dicElm) {
+                                    dom.setAttribs(dicElm, linkAttr);
+                                    editor.undoManager.add();
                                 } else {
-                                    anchorElm.textContent = data.text;
+                                    editor.insertContent(dom.createHTML('dictories', linkAttr));
+                                    editor.insertContent('&nbsp;');
                                 }
+
+                                editor.selection.select(dicElm);
+
+                                editor.nodeChanged();
                             }
 
-                            dom.setAttribs(anchorElm, linkAttrs);
+                            function insertLink() {
+                                editor.undoManager.transact(createLink);
+                            }
 
-                            selection.select(anchorElm);
-                            editor.undoManager.add();
-                        } else {
-                            editor.insertContent(dom.createHTML('dictories', linkAttrs));
+                            insertLink();
                         }
-                    }
-
-                    function insertLink() {
-                        editor.undoManager.transact(createLink);
-                    }
-
-                    insertLink();
+                    });
                 }
+
+            }
+
+            editor.on('preInit', function (event) {
+                //tinymce.activeEditor.settings.short_ended_elements += " dictories";
+                //tinymce.activeEditor.schema.addCustomElements('dictories[*]');
+
+                function toggleContentEditableState(state) {
+                    return function (nodes) {
+                        var i = nodes.length;
+
+                        while (i--) {
+                            nodes[i].attr('contenteditable', state ? 'false' : null);
+                        }
+                    };
+                }
+
+                editor.parser.addNodeFilter('dictories', toggleContentEditableState(true));
+                editor.serializer.addNodeFilter('dictories', toggleContentEditableState(false));
             });
+
+            editor.addButton('dictories', {
+                icon: 'books',
+                tooltip: tinymce.i18n.translate('Insert/edit dictories'),
+                onclick: createDicList(showDialog),
+                stateSelector: 'dictories[type][count]'
+            });
+
+            editor.addMenuItem('dictories', {
+                text: tinymce.i18n.translate('Dictories'),
+                icon: 'books',
+                onclick: createDicList(showDialog),
+                context: 'insert',
+                prependToContext: true
+            });
+
+            //editor.addCommand('mceImage', createDicList(showDialog));
+        },
+        getInfo : function() {
+            return {
+                longname : 'Dictories Plugin',
+                author: 'Kelatev,KPep',
+                authorurl: 'http://mdoffice.com.ia/',
+                version: "1.0"
+            };
         }
-
-    }
-
-    /*editor.on('preInit', function() {
-     function hasImageClass(node) {
-     var className = node.attr('class');
-     return className && /\bimage\b/.test(className);
-     }
-
-     function toggleContentEditableState(state) {
-     return function(nodes) {
-     var i = nodes.length, node;
-
-     function toggleContentEditable(node) {
-     node.attr('contenteditable', state ? 'true' : null);
-     }
-
-     while (i--) {
-     node = nodes[i];
-
-     if (hasImageClass(node)) {
-     node.attr('contenteditable', state ? 'false' : null);
-     tinymce.each(node.getAll('figcaption'), toggleContentEditable);
-     }
-     }
-     };
-     }
-
-     editor.parser.addNodeFilter('figure', toggleContentEditableState(true));
-     editor.serializer.addNodeFilter('figure', toggleContentEditableState(false));
-     });*/
-
-    editor.addButton('dictories', {
-        text: 'dic',
-        icon: false,
-        tooltip: 'Insert/edit dictories',
-        onclick: createDicList(showDialog),
-        stateSelector: 'dictories[type]'
     });
 
-    /*editor.addMenuItem('image', {
-     icon: 'image',
-     text: 'Image',
-     onclick: createImageList(showDialog),
-     context: 'insert',
-     prependToContext: true
-     });
-
-     editor.addCommand('mceImage', createImageList(showDialog));*/
-});
+    tinymce.PluginManager.add('dictories', tinymce.plugins.Dictories);
+})();

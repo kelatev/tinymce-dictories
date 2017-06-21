@@ -5,6 +5,7 @@ var gulp = require('gulp'),
     connect = require('gulp-connect');
 
 var paths = './src/*.js';
+var paths_lang = './src/langs/*.js';
 
 gulp.task('clean', function() {
     return del(['dist']);
@@ -27,10 +28,17 @@ gulp.task('scripts', function() {
         .pipe(gulp.dest('./dist/'))
         .pipe(connect.reload());
 });
+gulp.task('langs', function() {
+    gulp.src(paths_lang)
+        .on('error', console.log) // Если есть ошибки, выводим и продолжаем
+        .pipe(uglify())
+        .pipe(gulp.dest('./dist/lang/'))
+        .pipe(connect.reload());
+});
 
 gulp.task('watch', function() {
-    gulp.watch(paths, ['scripts']);
+    gulp.watch(paths, ['scripts', 'langs']);
 });
 
 // The default task (called when you run `gulp` from cli)
-gulp.task('default', ['connect', 'watch', 'scripts']);
+gulp.task('default', ['connect', 'watch', 'scripts', 'langs']);

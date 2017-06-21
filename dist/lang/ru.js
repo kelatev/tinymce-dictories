@@ -1,0 +1,1 @@
+tinymce.addI18n("ru",{"Insert/edit dictories":"12333",Dictories:"Словарь","Link list":"Словарь",Items:"Items","Insert dictories":"Insert dictories"});
