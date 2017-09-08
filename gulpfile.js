@@ -32,7 +32,7 @@ gulp.task('langs', function() {
     gulp.src(paths_lang)
         .on('error', console.log) // Если есть ошибки, выводим и продолжаем
         .pipe(uglify())
-        .pipe(gulp.dest('./dist/lang/'))
+        .pipe(gulp.dest('./dist/langs/'))
         .pipe(connect.reload());
 });
 
